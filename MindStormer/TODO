@@ -1,0 +1,11 @@
+- Code length: 5
+- Max guesses: 12
+
+- Bind bitmap buttons 1 row at a time
+- Start game
+- Restart game
+- Submit guess
+- Optional code length
+- Maybe have max guesses configurable then have main panel in a scroll pane
+
+- Refactor placement of pegs and awnsers to be more reliably spaced based on constants
