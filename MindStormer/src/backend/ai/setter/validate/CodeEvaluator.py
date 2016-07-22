@@ -10,9 +10,5 @@ class CodeEvaluator():
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def evaluateGuess(self, guess):
-        raise NotImplementedError()
-    
-    @abstractmethod
-    def setCode(self, code):
+    def evaluateGuess(self, code, guess):
         raise NotImplementedError()
