@@ -5,6 +5,7 @@ Created on 21 Jul 2016
 '''
 
 import wx
+import  wx.lib.scrolledpanel as scrolled
 from src.backend.code.CodeItems import CodeItems
 from backend.ai.AiPlayer import AiPlayer
 
@@ -20,13 +21,12 @@ class Window(wx.Frame):
     # Build window and initialise objects
     def __init__(self, parent, idd, title):
         wx.Frame.__init__(self, parent, idd, title, size=(610, 785))
-        self.panel = wx.Panel(self, -1)
-        
-        self.SetMinSize(self.GetSize())
-#         self.SetMaxSize(self.GetMinSize())
+        self.setupMenu()
+        self.panel = scrolled.ScrolledPanel(self, -1, size=(10, 10))
+        self.panel.SetupScrolling()
         
         self.codeLength = 6
-        self.maxGuesses = 20
+        self.maxGuesses = 25
         self.currentGuess = 0
         
         self.makeBitmaps()
@@ -34,10 +34,18 @@ class Window(wx.Frame):
         self.placeExamplePegs()
         self.placeAnswerHoles()
         self.placeButtons()
-        
         self.bindPegRow(0)
         
         self.compAi = AiPlayer(self.codeLength, AiPlayer.HARD)
+#         self.refreshStartSize()
+                
+################################################################################
+    
+    def refreshStartSize(self):
+        size = self.GetSize()
+        panelSize = self.panel.GetSize()
+        
+        self.SetSize((min(size[0], panelSize[0] + 20), min(size[1], panelSize[1] + 65)))
                 
 ################################################################################
     
@@ -119,19 +127,28 @@ class Window(wx.Frame):
         
         self.submitBtn.Bind(wx.EVT_BUTTON, self.submitGuess)
         self.restartBtn.Bind(wx.EVT_BUTTON, self.restartGame)
+        
+        self.setScrollPanelSize(y = y + self.submitBtn.GetSize()[1])
                 
 ################################################################################
     
     def placeExamplePegs(self):
         x0 = 20 + (self.codeLength * self.bigGapX) + (self.codeLength * self.smallGapX)
         y = 0
-        for (img, col) in self.bitmaps:
-            pos = (x0, 10 + (y * self.bigGapY))
-            bmp = wx.BitmapButton(self.panel, -1, img, pos=pos, style=wx.NO_BORDER)
-            bmp.Bind(wx.EVT_BUTTON, self.setCurrentColour)
+        for item in self.bitmaps:
+            self.createExamplePeg(x0, 10 + (y * self.bigGapY), item[0])
             y += 1
         
+        self.createExamplePeg(x0, 10 + (y * self.bigGapY), self.grey)
+        self.setScrollPanelSize(x = x0 + 2 * self.bigGapY, y = 10 + ((y + 2) * self.bigGapY))
+        
         self.currentColour = wx.BitmapButton(self.panel, -1, self.grey, pos=(x0 + self.bigGapY, 10), style=wx.NO_BORDER)
+                
+################################################################################
+    
+    def createExamplePeg(self, x, y, colour):
+            bmp = wx.BitmapButton(self.panel, -1, colour, pos=(x,y), style=wx.NO_BORDER)
+            bmp.Bind(wx.EVT_BUTTON, self.setCurrentColour)
                 
 ################################################################################
     
@@ -208,4 +225,52 @@ class Window(wx.Frame):
         image = wx.ImageFromBitmap(img)
         image = image.Scale(size, size, wx.IMAGE_QUALITY_HIGH)
         return wx.BitmapFromImage(image)
+
+################################################################################
+            
+    def setupMenu(self):
+        self.menuBar = wx.MenuBar()
+        
+        menu1 = wx.Menu()
+        menu1.Append(101, "New game")
+        menu1.AppendSeparator()
+        menu1.Append(103, "Quit")
+        self.menuBar.Append(menu1, "File")
+        
+        menu2 = wx.Menu()
+        menu2.Append(201, "Configure game")
+        self.menuBar.Append(menu2, "Config")
+        
+        self.SetMenuBar(self.menuBar)
+        
+        self.Bind(wx.EVT_MENU, self.restartGame, id=101)
+        self.Bind(wx.EVT_MENU, self.close, id=103)
+        
+################################################################################
+        
+    def setScrollPanelSize(self, x=0, y=0):
+        size = self.panel.GetSize()
+         
+        if x > size[0]:
+            size[0] = x
+            print "x = ", x
+        if y > size[1]:
+            size[1] = y
+            print "y = ", y
+         
+        self.panel.SetSize(size)
+        self.panel.SetupScrolling()
+        
+################################################################################
+        
+    def close(self, event):
+        self.Destroy()
+        
+################################################################################
+        
+    def Show(self):
+        size = self.panel.GetSize()
+        super(Window, self).Show()
+        self.panel.SetSize(size)
+        self.panel.Refresh()
     
